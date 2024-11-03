@@ -30,7 +30,7 @@ pipeline {
                     -v /mnt/c/Users/user/Documents/ABCD/abcd-student/.zap:/zap/wrk/:rw \
                     -t ghcr.io/zaproxy/zaproxy:stable \
                     bash -c "zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" || true
-                    sleep 300
+                    sleep 10
                 '''
             }
             post {
