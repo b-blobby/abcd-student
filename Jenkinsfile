@@ -18,7 +18,7 @@ pipeline {
                 
             }
         }
-        stage('OSV') {
+        stage('Trufflehog') {
             steps {
                 sh '''
                 docker run --name juice-shop -d --rm \
@@ -26,7 +26,7 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                osv-scanner scan --lockfile package-lock.json --format json --output results/sca-osv-scanner.json
+                trufflehog git file://. --since-commit master --branch main --only-verified --fail --json > results/trufflehog.json
                 '''
             }
         }
@@ -36,7 +36,7 @@ pipeline {
             echo 'Archiving results...'
             archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
             echo 'Sending reports to defectDojo...'
-            defectDojoPublisher(artifact: 'results/sca-osv-scanner.json', productName: 'Juice Shop', scanType: 'OSV Scan', engagementName: 'beata.bernat96@gmail.com')
+            defectDojoPublisher(artifact: 'results/trufflehog.json', productName: 'Juice Shop', scanType: 'Trufflehog Scan', engagementName: 'beata.bernat96@gmail.com')
         }
     }
 }
