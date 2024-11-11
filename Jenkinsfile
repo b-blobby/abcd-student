@@ -18,7 +18,7 @@ pipeline {
                 
             }
         }
-        stage('DAST') {
+        stage('OSV') {
             steps {
                 sh '''
                 docker run --name juice-shop -d --rm \
@@ -26,20 +26,8 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                docker run --name zap \
-                    -v //c/Users/user/Documents/ABCD/abcd-student/.zap:/zap/wrk/:rw \
-                    -t ghcr.io/zaproxy/zaproxy:stable \
-                    bash -c "zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" || true
-                    sleep 10
+                osv-scanner scan --lockfile=package-lock.json > ${WORKSPACE}/results/osv-scan-results.json
                 '''
-            }
-            post {
-                always {
-                sh '''
-                    docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html
-                    docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml
-                '''
-                }
             }
         }
     }
@@ -48,7 +36,7 @@ pipeline {
             echo 'Archiving results...'
             archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
             echo 'Sending reports to defectDojo...'
-            defectDojoPublisher(artifact: 'results/zap_xml_report.xml', productName: 'Juice Shop', scanType: 'ZAP Scan', engagementName: 'beata.bernat96@gmail.com')
+            defectDojoPublisher(artifact: 'results/osv-scan-results.json', productName: 'Juice Shop', scanType: 'OSV Scan', engagementName: 'beata.bernat96@gmail.com')
         }
     }
 }
