@@ -26,7 +26,7 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                trufflehog git file://. --since-commit main --branch main --only-verified --fail --json > results/trufflehog.json
+                trufflehog git file://. --since-commit main --branch HEAD --only-verified --fail --json > results/trufflehog.json
                 '''
             }
         }
