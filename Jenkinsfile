@@ -26,7 +26,7 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                osv-scanner scan --lockfile=package-lock.json > ${WORKSPACE}/results/osv-scan-results.json
+                osv-scanner scan --lockfile package-lock.json --format json --output results/sca-osv-scanner.json
                 '''
             }
         }
@@ -36,7 +36,7 @@ pipeline {
             echo 'Archiving results...'
             archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
             echo 'Sending reports to defectDojo...'
-            defectDojoPublisher(artifact: 'results/osv-scan-results.json', productName: 'Juice Shop', scanType: 'OSV Scan', engagementName: 'beata.bernat96@gmail.com')
+            defectDojoPublisher(artifact: 'results/sca-osv-scanner.json', productName: 'Juice Shop', scanType: 'OSV Scan', engagementName: 'beata.bernat96@gmail.com')
         }
     }
 }
