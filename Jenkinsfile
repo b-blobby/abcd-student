@@ -4,7 +4,7 @@ pipeline {
         skipDefaultCheckout(true)
     }
     stages {
-        stage('Code checkout from GitHub') {
+        stage('Code Checkout from GitHub') {
             steps {
                 script {
                     cleanWs() // Clean the workspace before checking out the code
@@ -12,31 +12,18 @@ pipeline {
                 }
             }
         }
-        stage('Prepare') {
-            steps {
-                script {
-                    sh 'mkdir -p results/' // Create the results directory in Jenkins workspace
-                }
+        stage('Run Semgrep on Main') {
+            when {
+                branch 'main' // Only run this stage on the main branch
             }
-        }
-        stage('Run Semgrep') {
             steps {
                 script {
-                    // Run Juice Shop in Docker
-                    sh '''
-                    docker run --name juice-shop -d --rm \
-                    -p 3000:3000 bkimminich/juice-shop
-                    '''
-
-                    // Wait for Juice Shop to start
-                    sleep(10)
-
-                    // Run Semgrep container with mounted volume
+                    // Run Semgrep container with mounted workspace
                     sh '''
                     docker run --name semgrep_c --rm \
                     -v ${WORKSPACE}:/sast/wrk:rw \
                     semgrep/semgrep:pro-sha-45390a1 \
-                    sh -c "mkdir -p /sast/wrk && semgrep --config=p/ci --metrics=off --json --output /sast/wrk/semgrep-report.json"
+                    sh -c "mkdir -p /sast/wrk && semgrep --config=p/ci --metrics=auto --json --output /sast/wrk/semgrep-report.json"
                     '''
                 }
             }
@@ -45,21 +32,12 @@ pipeline {
     post {
         always {
             script {
-                // Check if the report exists before attempting to archive
-                if (fileExists("results/semgrep-report.json")) {
-                    echo 'Archiving results...'
-                    archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
-
-                    // Send the report to DefectDojo
-                    echo 'Sending reports to DefectDojo...'
-                    defectDojoPublisher(
-                        artifact: 'results/semgrep-report.json', 
-                        productName: 'Juice Shop', 
-                        scanType: 'Semgrep JSON Report', 
-                        engagementName: 'beata.bernat96@gmail.com'
-                    )
+                // Archive Semgrep results if they exist
+                if (fileExists("semgrep-report.json")) {
+                    echo 'Archiving Semgrep results...'
+                    archiveArtifacts artifacts: 'semgrep-report.json', fingerprint: true, allowEmptyArchive: true
                 } else {
-                    echo "Semgrep report not found, skipping artifact archiving and publishing."
+                    echo "Semgrep report not found. Skipping artifact archiving."
                 }
             }
         }
