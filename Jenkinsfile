@@ -32,7 +32,7 @@ pipeline {
                     // Run Semgrep container with mounted volume
                     sh '''
                     docker run --name semgrep --rm -d \
-                    -v ${WORKSPACE}/abcd-student:/sast/wrk:rw \
+                    -v //c/Users/user/Documents/ABCD/abcd-student/sast:/sast/wrk:rw \
                     returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                     '''
                     
