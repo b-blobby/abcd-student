@@ -30,13 +30,7 @@ pipeline {
                     sleep(10)
 
                     // Create the directory in the container before running Semgrep
-                    sh '''
-                    docker run --rm \
-                    -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
-                    returntocorp/semgrep:latest \
-                    sh -c "mkdir -p /sast/wrk && echo 'Directory created'"
-                    '''
-                    
+                                      
                     // Run Semgrep container with mounted volume
                     sh '''
                     docker run --name semgrep_c \
