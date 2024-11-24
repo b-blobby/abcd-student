@@ -37,7 +37,7 @@ pipeline {
                     '''
                     
                     // Wait for Semgrep to finish (sleep time can be adjusted as needed)
-                    sleep(20)
+                    sleep(220)
                 }
             }
         }
