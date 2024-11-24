@@ -28,13 +28,13 @@ pipeline {
                     
                     // Sleep for 10 seconds to ensure Juice Shop is fully up before running Semgrep
                     sleep(10)
-                    
-                    // Create the /sast/wrk/ directory inside the Semgrep container
+
+                    // Create the directory in the container before running Semgrep
                     sh '''
                     docker run --rm \
                     -v ${WORKSPACE}/abcd-student:/sast/wrk:rw \
                     returntocorp/semgrep:latest \
-                    mkdir -p /sast/wrk/
+                    sh -c "mkdir -p /sast/wrk && echo 'Directory created'"
                     '''
                     
                     // Run Semgrep container with mounted volume
@@ -68,7 +68,7 @@ pipeline {
                     artifact: 'results/semgrep-report.json', 
                     productName: 'Juice Shop', 
                     scanType: 'Semgrep JSON Report', 
-                    engagementName: 'beata.bernat96@.com'
+                    engagementName: 'beata.bernat96@gmail.com'
                 )
             }
         }
