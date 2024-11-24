@@ -7,7 +7,7 @@ pipeline {
         stage('Code checkout from GitHub') {
             steps {
                 script {
-                    cleanWs()  // Clean the workspace before checking out the code
+                    cleanWs()
                     git credentialsId: 'github-pat', url: 'https://github.com/b-blobby/abcd-student', branch: 'main'
                 }
             }
@@ -25,21 +25,25 @@ pipeline {
                     docker run --name juice-shop -d --rm \
                     -p 3000:3000 bkimminich/juice-shop
                     '''
-                    
+
                     // Sleep for 10 seconds to ensure Juice Shop is fully up before running Semgrep
                     sleep(10)
 
-                    // Create the directory in the container before running Semgrep
-                                      
                     // Run Semgrep container with mounted volume
                     sh '''
                     docker run --name semgrep_c \
-                    -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
-                    semgrep/semgrep:pro-sha-45390a1 semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
+                    -v ${WORKSPACE}:/sast/wrk:rw \
+                    semgrep/semgrep:pro-sha-45390a1 \
+                    sh -c "mkdir -p /sast/wrk && semgrep --config p/ci --json > /sast/wrk/semgrep-report.json"
                     '''
-                    
-                    // Wait for Semgrep to finish (sleep time can be adjusted as needed)
-                    sleep(20)
+
+                    // Copy Semgrep report to Jenkins workspace
+                    sh '''
+                    mkdir -p ${WORKSPACE}/results
+                    docker cp semgrep_c:/sast/wrk/semgrep-report.json ${WORKSPACE}/results/semgrep-report.json
+                    docker stop semgrep_c
+                    docker rm semgrep_c
+                    '''
                 }
             }
         }
@@ -47,11 +51,6 @@ pipeline {
     post {
         always {
             script {
-                // Copy Semgrep report from the running container to the Jenkins workspace
-                sh '''
-                docker cp semgrep_c:/sast/wrk/semgrep-report.json ${WORKSPACE}/results/semgrep-report.json
-                '''
-                
                 // Archive results
                 echo 'Archiving results...'
                 archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
