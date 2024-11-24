@@ -26,12 +26,19 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                docker run --name semgrep --rm -d returntocorp/semgrep:latest
+                docker run --name semgrep --rm -d returntocorp/semgrep:latest \
+                -v //c/Users/user/Documents/ABCD/abcd-student/sast:/sast/wrk/:rw
                 '''
             sh '''
-                semgrep --config p/ci --json > semgrep-report.json
+                semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                 '''
             }
+             post {
+                always {
+                sh '''
+                    docker cp sast:/sast/wrk/reports/semgrep-report.json ${WORKSPACE}/results//semgrep-report.json                    
+                '''
+                }
         }
     }
     post {
