@@ -18,7 +18,7 @@ pipeline {
                 
             }
         }
-        stage('Trufflehog') {
+        stage('Semgrep') {
             steps {
                 sh '''
                 docker run --name juice-shop -d --rm \
@@ -26,7 +26,10 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                trufflehog git file://. --since-commit main --branch HEAD --only-verified --json > results/trufflehog.json
+                docker run --name returntocorp/semgrep:latest -d --rm 
+                '''
+            sh '''
+                semgrep --config p/ci --json > semgrep-report.json
                 '''
             }
         }
@@ -36,7 +39,7 @@ pipeline {
             echo 'Archiving results...'
             archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
             echo 'Sending reports to defectDojo...'
-            defectDojoPublisher(artifact: 'results/trufflehog.json', productName: 'Juice Shop', scanType: 'Trufflehog Scan', engagementName: 'beata.bernat96@gmail.com')
+            defectDojoPublisher(artifact: 'results/semgrep-report.json', productName: 'Juice Shop', scanType: 'Semgrep JSON Report', engagementName: 'beata.bernat96@gmail.com')
         }
     }
 }
