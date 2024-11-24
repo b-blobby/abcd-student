@@ -27,21 +27,19 @@ pipeline {
             '''
             sh '''
                 docker run --name semgrep --rm -d returntocorp/semgrep:latest \
-                -v //c/Users/user/Documents/ABCD/abcd-student/sast:/sast/wrk/:rw
-                '''
-            sh '''
-                semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
-                '''
-            
-             post {
-                always {
-                sh '''
-                    docker cp sast:/sast/wrk/reports/semgrep-report.json ${WORKSPACE}/results//semgrep-report.json                    
-                '''
-                }
-             }
+                -v //c/Users/user/Documents/ABCD/abcd-student/sast:/sast/wrk/:rw \
+                returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
+                sleep 20
+              '''            
         }
     }
+    post {
+        always {
+            script {
+                // Copy Semgrep report from the running container to the Jenkins workspace
+                sh '''
+                docker cp semgrep:/sast/wrk/semgrep-report.json ${WORKSPACE}/results/semgrep-report.json
+                '''
     post {
         always {
             echo 'Archiving results...'
