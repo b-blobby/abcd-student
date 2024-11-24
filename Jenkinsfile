@@ -26,7 +26,7 @@ pipeline {
                 sleep 10
             '''
             sh '''
-                docker run --name returntocorp/semgrep:latest -d --rm 
+                docker run --name semgrep --rm -d returntocorp/semgrep:latest
                 '''
             sh '''
                 semgrep --config p/ci --json > semgrep-report.json
