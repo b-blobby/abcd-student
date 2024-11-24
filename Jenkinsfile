@@ -7,30 +7,39 @@ pipeline {
         stage('Code checkout from GitHub') {
             steps {
                 script {
-                    cleanWs()
+                    cleanWs()  // Clean the workspace before checking out the code
                     git credentialsId: 'github-pat', url: 'https://github.com/b-blobby/abcd-student', branch: 'main'
                 }
             }
         }
         stage('Prepare') {
             steps {
-                sh 'mkdir -p results/'
-                
+                sh 'mkdir -p results/'  // Create the results directory
             }
         }
         stage('Semgrep') {
             steps {
-                sh '''
-                docker run --name juice-shop -d --rm \
-                -p 3000:3000 bkimminich/juice-shop
-                sleep 10
-            '''
-            sh '''
-                docker run --name semgrep --rm -d returntocorp/semgrep:latest \
-                -v //c/Users/user/Documents/ABCD/abcd-student/sast:/sast/wrk/:rw \
-                returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
-                sleep 20
-              '''            
+                script {
+                    // Run Juice Shop in Docker
+                    sh '''
+                    docker run --name juice-shop -d --rm \
+                    -p 3000:3000 bkimminich/juice-shop
+                    '''
+                    
+                    // Sleep for 10 seconds to ensure Juice Shop is fully up before running Semgrep
+                    sleep(10)
+                    
+                    // Run Semgrep container with mounted volume
+                    sh '''
+                    docker run --name semgrep --rm -d \
+                    -v ${WORKSPACE}/abcd-student:/sast/wrk:rw \
+                    returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
+                    '''
+                    
+                    // Wait for Semgrep to finish (sleep time can be adjusted as needed)
+                    sleep(20)
+                }
+            }
         }
     }
     post {
@@ -40,12 +49,20 @@ pipeline {
                 sh '''
                 docker cp semgrep:/sast/wrk/semgrep-report.json ${WORKSPACE}/results/semgrep-report.json
                 '''
-    post {
-        always {
-            echo 'Archiving results...'
-            archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
-            echo 'Sending reports to defectDojo...'
-            defectDojoPublisher(artifact: 'results/semgrep-report.json', productName: 'Juice Shop', scanType: 'Semgrep JSON Report', engagementName: 'beata.bernat96@gmail.com')
+                
+                // Archive results
+                echo 'Archiving results...'
+                archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
+                
+                // Send the report to DefectDojo
+                echo 'Sending reports to defectDojo...'
+                defectDojoPublisher(
+                    artifact: 'results/semgrep-report.json', 
+                    productName: 'Juice Shop', 
+                    scanType: 'Semgrep JSON Report', 
+                    engagementName: 'beata.bernat96@gmail.com'
+                )
+            }
         }
     }
 }
