@@ -33,11 +33,10 @@ pipeline {
 
                     // Run Semgrep container with mounted volume
                     sh '''
-                    docker run --name semgrep_c \
-                    -v ${WORKSPACE}:/sast/wrk:rw \
-                    semgrep/semgrep:pro-sha-45390a1 \
-                    sh -c "mkdir -p /sast/wrk && semgrep --config=p/ci --metrics=off --json --output /sast/wrk/semgrep-report.json"
-                    sleep(20)
+                   docker run --name semgrep_c --rm \
+                   -v /var/jenkins_home/workspace/ABCD:/sast/wrk:rw \
+                   semgrep/semgrep:pro-sha-45390a1 \
+                   sh -c "mkdir -p /sast/wrk && semgrep --config=p/ci --metrics=off --json --output /sast/wrk/semgrep-report.json"
                     '''
                 }
             }
