@@ -35,7 +35,7 @@ pipeline {
                     sh '''
                     docker run --name semgrep_c \
                     -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
-                    returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
+                    semgrep/semgrep:pro-sha-45390a1 semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                     '''
                     
                     // Wait for Semgrep to finish (sleep time can be adjusted as needed)
