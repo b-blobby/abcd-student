@@ -32,7 +32,7 @@ pipeline {
                     // Create the directory in the container before running Semgrep
                     sh '''
                     docker run --rm \
-                    -v //c/Users/user/Documents/ABCD/abcd-student/:/sast/wrk:rw \
+                    -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
                     returntocorp/semgrep:latest \
                     sh -c "mkdir -p /sast/wrk && echo 'Directory created'"
                     '''
@@ -40,7 +40,7 @@ pipeline {
                     // Run Semgrep container with mounted volume
                     sh '''
                     docker run --name semgrep --rm -d \
-                    -v //c/Users/user/Documents/ABCD/abcd-student/:/sast/wrk:rw \
+                    -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
                     returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                     '''
                     
