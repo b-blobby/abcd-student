@@ -32,13 +32,14 @@ pipeline {
             sh '''
                 semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                 '''
-            }
+            
              post {
                 always {
                 sh '''
                     docker cp sast:/sast/wrk/reports/semgrep-report.json ${WORKSPACE}/results//semgrep-report.json                    
                 '''
                 }
+             }
         }
     }
     post {
