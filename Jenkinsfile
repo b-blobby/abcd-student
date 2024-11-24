@@ -33,7 +33,7 @@ pipeline {
 
                     // Run Semgrep container with mounted volume
                     sh '''
-                   docker run --name semgrep_c --rm \
+                   docker run --name semgrep_c \
                    -v /var/jenkins_home/workspace/ABCD:/sast/wrk:rw \
                    semgrep/semgrep:pro-sha-45390a1 \
                    sh -c "mkdir -p /sast/wrk && semgrep --config=auto --json --output /sast/wrk/semgrep-report.json"
