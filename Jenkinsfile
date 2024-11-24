@@ -39,9 +39,9 @@ pipeline {
                     
                     // Run Semgrep container with mounted volume
                     sh '''
-                    docker run --name semgrep_c --rm -d \
+                    docker run --name semgrep_c \
                     -v //c/Users/user/Documents/ABCD/abcd-student:/sast/wrk:rw \
-                    returntocorp/semgrep:latest semgrep_c --config p/ci --json > /sast/wrk/semgrep-report.json
+                    returntocorp/semgrep:latest semgrep --config p/ci --json > /sast/wrk/semgrep-report.json
                     '''
                     
                     // Wait for Semgrep to finish (sleep time can be adjusted as needed)
